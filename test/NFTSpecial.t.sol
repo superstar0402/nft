@@ -7,11 +7,18 @@ import {NFTSpecial} from "../src/NFTSpecial.sol";
 contract NFTSpecialTest is Test {
     NFTSpecial public nftspecial;
 
+    mapping(address => bool) public bitmap;
+
     function setUp() public {
         address owner = vm.addr(0x1234);
         address artist = vm.addr(0x44);
-        bytes32 merkleRoot = bytes32("0x1234");
+        bytes32 merkleRoot = 0xa363ce445148603408e6b99e5f58271a80b194bfce04d7270672f0ac98e086f5;
         nftspecial = new NFTSpecial(owner, merkleRoot, artist);
+    }
+
+    function testVerifyEligible() public {
+        bytes32 memory proof = new bytes[2];
+        
     }
 
     function testSupply() public {

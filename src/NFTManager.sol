@@ -44,7 +44,8 @@ contract NFTManager is IERC721Receiver, Ownable2Step {
     function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data)
         external
         returns (bytes4)
-    {
+    {   
+        require(msg.sender == address(nftSpecial), "Invalid NFT");
         return this.onERC721Received.selector;
     }
 }
