@@ -23,18 +23,16 @@ contract NFTManager is IERC721Receiver, Ownable2Step {
     }
 
     function stakeNFT(address nft, uint256 tokenId) external {
-        ERC721(nftSpecial).transferFrom(msg.sender, address(this), tokenId);
+        ERC721(nftSpecial).safeTransferFrom(msg.sender, address(this), tokenId);
         stakedNFT[msg.sender] = tokenId;
         stakedTime[msg.sender] = block.timestamp;
     }
 
     function unStakeNFT() external {
-        ERC721(nftSpecial).transferFrom(address(this), msg.sender, stakedNFT[msg.sender]);
-        stakedNFT[msg.sender] = 0;
-        stakedTime[msg.sender] = 0;
+        ERC721(nftSpecial).safeTransferFrom(address(this), msg.sender, stakedNFT[msg.sender]);
     }
 
-    function withdrawNFT(uint256 tokenId, uint256 amount) external returns (bool) {
+    function claim(uint256 tokenId, uint256 amount) external returns (bool) {
         require(stakedNFT[msg.sender] == tokenId, "Invalid Owner");
         require(block.timestamp > stakedTime[msg.sender] + threshold, "Not enough time has passed");
         IERC20(rewardToken).safeTransferFrom(address(this), msg.sender, rewardAmount);
