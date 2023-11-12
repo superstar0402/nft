@@ -17,8 +17,6 @@ contract NFTSpecialTest is Test {
     }
 
     function testVerifyEligible() public {
-        bytes32 memory proof = new bytes[2];
-        
     }
 
     function testSupply() public {

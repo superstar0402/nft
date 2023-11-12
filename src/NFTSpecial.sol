@@ -25,24 +25,34 @@ contract NFTSpecial is ERC721, ERC2981, Ownable2Step {
         _setDefaultRoyalty(_artist, 250);
     }
 
-    function _verifyEligible(bytes32[] calldata merkleProof, uint256 index) internal view returns (bool) {
+    function _verifyEligible(bytes32[] calldata merkleProof, uint256 index) internal  {
         bytes32 leaf = keccak256(abi.encodePacked(msg.sender, index));
         require(MerkleProof.verify(merkleProof, merkleRoot, leaf));
-        return true;
     }
 
 
-    function mint(bytes32[] calldata proof, uint256 index, uint256 _price) external payable {
+    function mintDiscount(bytes32[] calldata proof, uint256 index, uint256 _price) external payable {
         require(tokenSupply < MAX_SUPPLY, "Maximum supply reached");
         require(!_discountList.get(index), "Already minted");
+        require(_price == DISCOUNT_PRICE , "Invalid price");
         _verifyEligible(proof, index);
         BitMaps.setTo(_discountList, index, true);
-        uint256 price = _discountList.get(index) ? DISCOUNT_PRICE : PRICE;
         _mint(msg.sender, tokenSupply);
         tokenSupply++;
     }
 
+    function mint() external payable {
+        require(tokenSupply < MAX_SUPPLY, "Maximum supply reached");
+        require(msg.value == PRICE, "Invalid price");
+        _mint(msg.sender, tokenSupply);
+        tokenSupply++;
+    }
+
+    function withdraw() external onlyOwner {
+        payable(owner()).transfer(address(this).balance);
+    }
+
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, ERC2981) returns (bool) {
-        return super.supportsInterface(interfaceId);
+        return ERC721.supportsInterface(interfaceId) || ERC2981.supportsInterface(interfaceId);
     }
 }
