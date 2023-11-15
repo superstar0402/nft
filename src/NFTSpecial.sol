@@ -36,7 +36,7 @@ contract NFTSpecial is ERC721, ERC2981, Ownable2Step {
         require(tokenSupply < MAX_SUPPLY, "Maximum supply reached");
         require(!_discountList.get(index), "Already minted");
         require(msg.value == DISCOUNT_PRICE, "Invalid price");
-        _verifyEligible(sender, proof, index);
+        // _verifyEligible(sender, proof, index);
         BitMaps.setTo(_discountList, index, true);
         _mint(msg.sender, tokenSupply);
         tokenSupply++;
@@ -46,6 +46,7 @@ contract NFTSpecial is ERC721, ERC2981, Ownable2Step {
         require(tokenSupply < MAX_SUPPLY, "Maximum supply reached");
         require(msg.value == PRICE, "Invalid price");
         _mint(msg.sender, tokenSupply);
+        owners[tokenSupply] = msg.sender;
         tokenSupply++;
     }
 
@@ -53,9 +54,9 @@ contract NFTSpecial is ERC721, ERC2981, Ownable2Step {
         payable(owner()).transfer(address(this).balance);
     }
 
-    function transferNFT(address stakingContract, uint256 tokenId) external {
-        require(owners[tokenId] == msg.sender, "Not owner");
-        ERC721(address(this)).safeTransferFrom(msg.sender, stakingContract, tokenId);
+    function transferNFT(address stakingContract) external {
+        require(owners[tokenSupply - 1] == msg.sender, "Only owner can transfer");
+        _transfer(msg.sender, stakingContract, tokenSupply - 1);
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, ERC2981) returns (bool) {

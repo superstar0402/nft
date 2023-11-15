@@ -4,20 +4,28 @@ pragma solidity ^0.8.13;
 import {Test, console2} from "forge-std/Test.sol";
 import {NFTSpecial} from "../src/NFTSpecial.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import {NFTManager} from "../src/NFTManager.sol";
+import {RewardToken} from "../src/RewardToken.sol";
 
 contract NFTSpecialTest is Test {
     using Strings for uint256;
 
     NFTSpecial public nftspecial;
+    NFTManager public nftManger;
+    RewardToken public rewardToken;
     address owner;
     address artist;
     bytes32 public merkleRoot;
+
 
     function setUp() public {
         owner = vm.addr(0x1234);
         artist = vm.addr(0x44);
         merkleRoot = testSetUpMerkleTree();
+        emit log_bytes32(merkleRoot);
         nftspecial = new NFTSpecial(owner, merkleRoot, artist);
+        rewardToken = new RewardToken(20000);
+        nftManger = new NFTManager(owner, address(rewardToken));
     }
 
     function generateMerkleProof(bytes32[] memory leaves, uint256 index) public pure returns (bytes32[] memory) {
@@ -128,5 +136,23 @@ contract NFTSpecialTest is Test {
         vm.deal(vm.addr(0x11), 5 ether);
         vm.prank(vm.addr(0x11));
         nftspecial.mintDiscount{value: 0.8 ether}(sender, proof, index);
+    }
+
+    function testMint() public {
+        address Bob = vm.addr(0x2);
+        vm.startPrank(Bob); 
+        vm.deal(Bob, 1 ether);
+        nftspecial.mint{value: 1 ether}();
+        assertEq(nftspecial.balanceOf(Bob), 1);
+    }
+
+
+    function testTransferNFT() public {
+        address stakingContract = address(nftManger);
+        address Bob = vm.addr(0x2);
+        vm.startPrank(Bob); 
+        vm.deal(Bob, 1 ether);
+        nftspecial.mint{value: 1 ether}();
+        nftspecial.transferNFT(stakingContract);
     }
 }

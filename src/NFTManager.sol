@@ -33,6 +33,7 @@ contract NFTManager is IERC721Receiver, Ownable2Step {
         return true;
     }
 
+
     function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data)
         external
         returns (bytes4)
