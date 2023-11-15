@@ -13,25 +13,17 @@ contract NFTManager is IERC721Receiver, Ownable2Step {
     NFTSpecial public immutable nftSpecial;
 
     uint256 public immutable threshold = 24 hours;
-    uint256 constant public rewardAmount = 10;  
+    uint256 public constant rewardAmount = 10;
 
     mapping(address => mapping(uint256 => bool)) public stakedNFT;
     mapping(address => mapping(uint256 => uint256)) public stakedTime;
 
-    constructor(address _owner, address _rewardToken) public Ownable(_owner){
-         rewardToken = IERC20(_rewardToken);
-    }
-
-    function stakeNFT(uint256 tokenId) external {
-        require(stakedNFT[msg.sender][tokenId] == false, "Already staked");
-        require(ERC721(nftSpecial).ownerOf(tokenId) == msg.sender, "Invalid Owner");
-        stakedNFT[msg.sender][tokenId] = true;
-        stakedTime[msg.sender][tokenId] = block.timestamp;
-        ERC721(nftSpecial).safeTransferFrom(msg.sender, address(this), tokenId);
+    constructor(address _owner, address _rewardToken) public Ownable(_owner) {
+        rewardToken = IERC20(_rewardToken);
     }
 
     function unStakeNFT(uint256 tokenId) external {
-        ERC721(nftSpecial).safeTransferFrom(msg.sender, address(this), tokenId);
+        ERC721(nftSpecial).safeTransferFrom(address(this), msg.sender, tokenId);
     }
 
     function claim(uint256 tokenId, uint256 amount) external returns (bool) {
@@ -44,8 +36,12 @@ contract NFTManager is IERC721Receiver, Ownable2Step {
     function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data)
         external
         returns (bytes4)
-    {   
+    {
         require(msg.sender == address(nftSpecial), "Invalid NFT");
+        require(stakedNFT[msg.sender][tokenId] == false, "Already staked");
+        require(ERC721(nftSpecial).ownerOf(tokenId) == msg.sender, "Invalid Owner");
+        stakedNFT[msg.sender][tokenId] = true;
+        stakedTime[msg.sender][tokenId] = block.timestamp;
         return this.onERC721Received.selector;
     }
 }
